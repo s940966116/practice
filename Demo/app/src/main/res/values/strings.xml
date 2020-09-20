@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Demo</string>
+
+    <integer-array name="resourceList">
+        <item>@drawable/p1</item>
+        <item>@drawable/p2</item>
+        <item>@drawable/p3</item>
+        <item>@drawable/p4</item>
+        <item>@drawable/p5</item>
+        <item>@drawable/p6</item>
+        <item>@drawable/p7</item>
+    </integer-array>
+</resources>
