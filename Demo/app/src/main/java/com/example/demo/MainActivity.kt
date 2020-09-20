@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -63,7 +64,11 @@ class DataAdapter(private val mData: ArrayList<Item>) : RecyclerView.Adapter<Vie
             Toast.makeText(it.context, "Item ${position+1} is clicked.", Toast.LENGTH_SHORT).show()
         }
         holder.itemView.setOnLongClickListener {
-            Toast.makeText(it.context, "Item ${position+1} is long clicked.", Toast.LENGTH_SHORT).show()
+            AlertDialog.Builder(it.context)
+                .setTitle(mData[position].title)
+                .setMessage(mData[position].overview)
+                .setPositiveButton("確認"){dialog, which ->
+                }.show()
             true
         }
     }
