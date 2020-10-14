@@ -1,9 +1,16 @@
 package com.example.demo
 
+import android.app.Notification
+import android.app.NotificationManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +19,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.iid.InstanceIdResult
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.av.view.*
@@ -44,9 +53,13 @@ class MainActivity : AppCompatActivity() {
     lateinit var layoutManager : LinearLayoutManager
     var totaldatalength = 0
     var loading = false
+    var receiver = MyReceiver(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val receiverfilter = IntentFilter("MyMessage")
+        registerReceiver(receiver, receiverfilter)
 
         CoroutineScope(Dispatchers.IO).launch {
             result = URL("https://api.themoviedb.org/3/discover/movie?api_key=b774b8444f44b3c5fa4d07f3295fa07b&with_genres=18&primary_release_year=2014").readText()
@@ -66,6 +79,11 @@ class MainActivity : AppCompatActivity() {
                 listview.setHasFixedSize(true)
                 listview.adapter = DataAdapter(datalist)
             }
+            FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener {
+                InstanceIdResult ->
+                val token = InstanceIdResult.token
+                Log.d("cloudMessage","$token")
+            }
         }
         swipe.setColorSchemeColors(Color.BLACK)
 
@@ -78,6 +96,11 @@ class MainActivity : AppCompatActivity() {
         }
         swipe.setOnRefreshListener(listener)
         addscrollListener()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(receiver)
     }
 
     private fun addscrollListener(){
@@ -131,19 +154,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun update(){
+    fun update() {
         val datalist1 = ArrayList<Item>()
         CoroutineScope(Dispatchers.IO).launch {
-            result = URL("https://api.themoviedb.org/3/discover/movie?primary_release_year=2010&sort_by=vote_average.desc&api_key=b774b8444f44b3c5fa4d07f3295fa07b").readText()
+            result =
+                URL("https://api.themoviedb.org/3/discover/movie?primary_release_year=2010&sort_by=vote_average.desc&api_key=b774b8444f44b3c5fa4d07f3295fa07b").readText()
             val jsonObject_results = JSONObject(result).getJSONArray("results")
-            for(i in 0 until jsonObject_results.length()){
+            for (i in 0 until jsonObject_results.length()) {
                 val obj = jsonObject_results.getJSONObject(i)
                 val title = obj.getString("title")
                 val poster_path = obj.getString("poster_path")
                 val overview = obj.getString("overview")
                 datalist1.add(Item(title, poster_path, overview))
             }
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 val layoutManager = LinearLayoutManager(this@MainActivity)
                 layoutManager.orientation = LinearLayoutManager.VERTICAL
                 listview.layoutManager = layoutManager
